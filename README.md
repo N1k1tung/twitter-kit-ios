@@ -1,6 +1,6 @@
 **How to use the customized TwitterKit pod**
 ```
-pod 'TwitterKit5'
+pod 'TwitterKitSOF'
 ```
 
 **How to build and use the customized TwitterKit pod**
