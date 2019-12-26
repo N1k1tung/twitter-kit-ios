@@ -1,10 +1,11 @@
 #!/bin/bash
 
-## Build TwitterKit.framework - x86_64
+## Build TwitterKit.framework - i386, x86_64
 xcodebuild \
     -project TwitterKit/TwitterKit.xcodeproj \
-    -scheme TwitterKit -configuration Debug \
+    -scheme TwitterKit -configuration Release \
     -sdk "iphonesimulator" \
+    -destination 'platform=iOS Simulator,name=iPhone 11' ONLY_ACTIVE_ARCH=NO ARCHS="i386 x86_64" \
     HEADER_SEARCH_PATHS="$(pwd)/TwitterCore/iphonesimulator/Headers $(pwd)/TwitterCore/iphonesimulator/PrivateHeaders"  \
     CONFIGURATION_BUILD_DIR=./iphonesimulator \
     clean build
@@ -12,7 +13,7 @@ xcodebuild \
 ## Build TwitterKit.framework - armv7, arm64
 xcodebuild \
     -project TwitterKit/TwitterKit.xcodeproj \
-    -scheme TwitterKit -configuration Debug \
+    -scheme TwitterKit -configuration Release \
     -sdk "iphoneos" \
     HEADER_SEARCH_PATHS="$(pwd)/TwitterCore/iphoneos/Headers $(pwd)/TwitterCore/iphoneos/PrivateHeaders"  \
     CONFIGURATION_BUILD_DIR=./iphoneos \
@@ -29,3 +30,7 @@ lipo -archs iOS/TwitterKit.framework/TwitterKit
 rm TwitterKit.zip
 zip -r TwitterKit.zip iOS/*
 rm -rf iOS
+rm -rf TwitterCore/iphoneos
+rm -rf TwitterCore/iphonesimulator
+rm -rf TwitterKit/iphoneos
+rm -rf TwitterKit/iphonesimulator
