@@ -63,6 +63,11 @@ NS_ASSUME_NONNULL_BEGIN
  */
 - (void)shareViewControllerDidSelectAccount:(id<TWTRSEAccount>)account;
 
+/**
+Control UI behaviour of composer outside.
+*/
+- (BOOL)canControlOutsideWithCompletion:(void(^)(BOOL))completion;
+
 @end
 
 NS_ASSUME_NONNULL_END

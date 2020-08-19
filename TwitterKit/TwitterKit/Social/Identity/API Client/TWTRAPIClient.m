@@ -215,8 +215,27 @@ static id<TWTRSessionStore_Private> TWTRSharedSessionStore = nil;
     TWTRParameterAssertOrReturn(completion);
 
     NSString *videoSize = @(videoData.length).stringValue;
-    NSString *videoString = [videoData base64EncodedStringWithOptions:0];
-    NSDictionary *parameters = @{@"command": @"INIT", @"total_bytes": videoSize, @"media_type": @"video/mp4"};
+    NSDictionary *parameters = @{@"command": @"INIT", @"total_bytes": videoSize,
+                                 @"media_type": @"video/mp4"};
+    
+    
+    NSMutableArray *dataChunks = [NSMutableArray array];
+    long long len = 0;
+    const long long kChunkMaxSize = 5 * 1024 * 1024 - 1;
+
+    while((len + kChunkMaxSize) < [videoData length]) {
+        [dataChunks addObject: [videoData subdataWithRange: NSMakeRange(len, kChunkMaxSize)]];
+        len += kChunkMaxSize;
+    }
+
+    [dataChunks addObject: [videoData subdataWithRange: NSMakeRange(len, videoData.length - len)]];
+    
+    NSMutableArray *chunks = [NSMutableArray array];
+    
+    for(NSData *dataChunk in dataChunks) {
+        NSString *chunk = [dataChunk base64EncodedStringWithOptions: 0];
+        [chunks addObject: chunk];
+    }
 
     [self uploadWithParameters:parameters
                     completion:^(NSURLResponse *response, NSDictionary *responseDict, NSError *error) {
@@ -224,7 +243,10 @@ static id<TWTRSessionStore_Private> TWTRSharedSessionStore = nil;
                             completion(nil, error);
                         } else {
                             if ([responseDict objectForKey:TWTRMediaIDStringKey]) {
-                                [self postAppendWithMediaID:responseDict[TWTRMediaIDStringKey] videoString:videoString completion:completion];
+                                [self uploadChunks:chunks
+                                        chunkIndex:0
+                                           mediaID:responseDict[TWTRMediaIDStringKey]
+                                        completion: completion];
                             } else {
                                 NSError *missingKeyError = [NSError errorWithDomain:TWTRErrorDomain code:TWTRErrorCodeMissingParameter userInfo:@{NSLocalizedDescriptionKey: @"API returned dictionary but did not have \"media_id_string\""}];
                                 completion(nil, missingKeyError);
@@ -233,22 +255,38 @@ static id<TWTRSessionStore_Private> TWTRSharedSessionStore = nil;
                     }];
 }
 
-- (void)postAppendWithMediaID:(nonnull NSString *)mediaID videoString:(nonnull NSString *)videoString completion:(TWTRMediaUploadResponseCompletion)completion
+- (void)uploadChunks: (NSArray *) chunks
+          chunkIndex: (NSInteger) idx
+             mediaID: (nonnull NSString *)mediaID
+          completion:(TWTRMediaUploadResponseCompletion)completion
 {
-    if (!mediaID) {
-        NSError *error = [NSError errorWithDomain:TWTRErrorDomain code:0 userInfo:@{NSLocalizedDescriptionKey: @"Error: mediaID is required."}];
-        completion(nil, error);
+    
+    if(idx > chunks.count) {
+        NSLog(@"Error: upload chunk index more then chunks array");
+        NSError *chunksError = [NSError errorWithDomain:TWTRErrorDomain code:0 userInfo:@{NSLocalizedDescriptionKey: @"Error: upload chunk index more then chunks array"}];
+        completion(mediaID, chunksError);
         return;
     }
-    NSDictionary *parameters = @{@"command": @"APPEND", @"media_id": mediaID, @"segment_index": @"0", @"media": videoString};
+    
+    NSString *chunk = [chunks objectAtIndex:idx];
+    NSDictionary *parameters = @{@"command": @"APPEND", @"media_id": mediaID, @"segment_index": [@(idx) stringValue], @"media_data": chunk};
+ 
+    NSLog(@"start uploading chunk(%@) %li", mediaID, (long)idx);
+
     [self uploadWithParameters:parameters
                     completion:^(NSURLResponse *response, id responseObject, NSError *error) {
-                        if (error) {
-                            completion(nil, error);
-                        } else {
-                            [self postFinalizeWithMediaID:mediaID completion:completion];
-                        }
-                    }];
+        NSInteger nextIdx = idx + 1;
+        if (error) {
+            completion(nil, error);
+        } else if (nextIdx < chunks.count) {
+            [self uploadChunks:chunks
+                    chunkIndex: nextIdx
+                       mediaID:mediaID completion:completion];
+        } else {
+            NSLog(@"finalize uploading chunks(%@)", mediaID);
+            [self postFinalizeWithMediaID:mediaID completion:completion];
+        }
+    }];
 }
 
 - (void)postFinalizeWithMediaID:(nonnull NSString *)mediaID completion:(TWTRMediaUploadResponseCompletion)completion
@@ -775,6 +813,12 @@ static id<TWTRSessionStore_Private> TWTRSharedSessionStore = nil;
                               NSString *errorString = [NSString stringWithFormat:@"Invalid type encountered when loading API path: %@. Expected %@ got %@", url.absoluteString, NSStringFromClass(expectedClass), NSStringFromClass([responseObject class])];
                               errorToReturn = [NSError errorWithDomain:TWTRErrorDomain code:TWTRErrorCodeMismatchedJSONType userInfo:@{NSLocalizedDescriptionKey: errorString}];
                               responseObject = nil;
+                          } else {
+                              NSDictionary *processingInfo = [(NSDictionary *)responseObject objectForKey:@"processing_info"];
+                              float needDelay = [[processingInfo objectForKey:@"check_after_secs"] floatValue];
+                              if (needDelay > 0) {
+                                  sleep((unsigned int)needDelay);
+                              }
                           }
                       } else {
                           errorToReturn = connectionError;
