@@ -1,6 +1,6 @@
 **How to use the customized TwitterKit pod**
 ```
-pod 'TwitterKit5'
+pod 'TwitterKitSOF'
 ```
 
 **How to build and use the customized TwitterKit pod**
@@ -22,7 +22,7 @@ pod 'TwitterKit5'
 3. Update TwitterKit5.podspec, make sure `s.version` and `s.source` is correct.
 4. Deploy to [CocoaPods Trunk](https://guides.cocoapods.org/making/getting-setup-with-trunk.html)
 ```
-pod trunk push TwitterKit5.podspec
+pod trunk push TwitterKitSOF.podspec
 ```
 
 ----

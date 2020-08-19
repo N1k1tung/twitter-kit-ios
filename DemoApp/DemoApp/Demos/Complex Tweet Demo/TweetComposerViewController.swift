@@ -134,12 +134,21 @@ extension TweetComposerViewController: TWTRComposerViewControllerDelegate {
     }
 
     func composerDidFail(_ controller: TWTRComposerViewController, withError error: Error) {
-        dismiss(animated: false, completion: nil)
+        DispatchQueue.main.async {
+            self.dismiss(animated: false, completion: nil)
+        }
     }
 
     func composerDidSucceed(_ controller: TWTRComposerViewController, with tweet: TWTRTweet) {
-        dismiss(animated: false, completion: nil)
+        DispatchQueue.main.async {
+            self.dismiss(animated: false, completion: nil)
+        }
     }
+    
+    func composerCanControlOutside(_ controller: TWTRComposerViewController, completion: @escaping (Bool) -> Void) -> Bool {
+        return false
+    }
+
 }
 
 // MARK: - UIImagePickerControllerDelegate
@@ -151,12 +160,18 @@ extension TweetComposerViewController: UIImagePickerControllerDelegate, UINaviga
         }
     }
 
-    private func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
+    public func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
         picker.dismiss(animated: true)
-        if let image = info[UIImagePickerController.InfoKey.originalImage.rawValue] as? UIImage {
+
+        if let image = info[UIImagePickerController.InfoKey.originalImage] as? UIImage {
             let composer = TWTRComposerViewController(initialText: "Check out this great image: ", image: image, videoURL: nil)
             composer.delegate = self
             self.present(composer, animated: true)
+        } else if let url = info[UIImagePickerController.InfoKey.mediaURL] as? NSURL {
+            let composer = TWTRComposerViewController(initialText: "Check out this great media: ", image: nil, videoURL: url as URL)
+            composer.delegate = self
+            self.present(composer, animated: true)
         }
+        
     }
 }

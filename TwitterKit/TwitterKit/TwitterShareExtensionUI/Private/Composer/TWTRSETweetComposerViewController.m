@@ -689,8 +689,34 @@ static void *TSETweetTextKVOCOntext = &TSETweetTextKVOCOntext;
 
     [self.view endEditing:YES];
     self.isSendingTweet = YES;
-
+    
     __weak typeof(self) weakSelf = self;
+
+    if ([self.configuration.delegate respondsToSelector:@selector(canControlOutsideWithCompletion:)]) {
+        BOOL canControlOutside = [self.configuration.delegate canControlOutsideWithCompletion:^(BOOL result) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                typeof(self) strongSelf = weakSelf;
+
+                if (!strongSelf) {
+                    return;
+                }
+
+                strongSelf.isSendingTweet = NO;
+
+                if (result) {
+                    [strongSelf.configuration.delegate shareViewControllerDidFinishSendingTweet];
+                } else {
+                    [strongSelf _tseui_presentTweetPostRequestErrorAlert];
+                }
+                
+            });
+        }];
+        
+        if (canControlOutside) {
+            return;
+        }
+    }
+
     [_configuration.networking sendTweet:[self.dataSource.composedTweet copy]
                              fromAccount:self.selectedAccount
                               completion:^(TWTRSENetworkingResult result) {
