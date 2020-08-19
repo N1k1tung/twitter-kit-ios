@@ -692,8 +692,9 @@ static void *TSETweetTextKVOCOntext = &TSETweetTextKVOCOntext;
     
     __weak typeof(self) weakSelf = self;
 
-    if ([self.configuration.delegate respondsToSelector:@selector(canControlOutsideWithCompletion:)]) {
-        BOOL canControlOutside = [self.configuration.delegate canControlOutsideWithCompletion:^(BOOL result) {
+    if ([self.configuration.delegate respondsToSelector:@selector(canControlOutsideComposedTweet:completion:)]) {
+        BOOL canControlOutside = [self.configuration.delegate canControlOutsideComposedTweet: [self.dataSource.composedTweet copy]
+                                                                                  completion:^(BOOL result) {
             dispatch_async(dispatch_get_main_queue(), ^{
                 typeof(self) strongSelf = weakSelf;
 
