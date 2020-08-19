@@ -155,6 +155,16 @@ UIImage *videoThumbnail(NSURL *url)
 
 #pragma mark - TWTRSETweetShareViewControllerDelegate Protocol Methods
 
+- (BOOL)canControlOutsideWithCompletion:(void(^)(BOOL))completion
+{
+    if ([self.delegate respondsToSelector:@selector(composerCanControlOutside:completion:)]) {
+        BOOL canControlOutside = [self.delegate composerCanControlOutside:(TWTRComposerViewController *)self completion:completion];
+        return canControlOutside;
+    }
+    
+    return false;
+}
+
 - (void)shareViewControllerWantsToCancelComposerWithPartiallyComposedTweet:(nonnull TWTRSETweet *)partiallyComposedTweet
 {
     [self dismissViewControllerAnimated:YES completion:nil];
