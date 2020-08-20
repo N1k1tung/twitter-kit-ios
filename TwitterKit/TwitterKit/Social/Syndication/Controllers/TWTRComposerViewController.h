@@ -102,7 +102,9 @@ NS_ASSUME_NONNULL_BEGIN
 * This method is called if we want to send twit outside.
 * We need to call completion block to finish work with composer.
 */
-- (BOOL)composerCanControlOutside:(TWTRComposerViewController *)controller completion:(void(^)(BOOL))completion;
+- (BOOL)composerCanControlOutside:(TWTRComposerViewController *)controller
+                        tweetText:(nullable NSString *)tweetText
+                       completion:(void(^)(BOOL))completion;
 
 @end
 

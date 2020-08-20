@@ -66,7 +66,7 @@ NS_ASSUME_NONNULL_BEGIN
 /**
 Control UI behaviour of composer outside.
 */
-- (BOOL)canControlOutsideWithCompletion:(void(^)(BOOL))completion;
+- (BOOL)canControlOutsideComposedTweet:(TWTRSETweet *)tweet completion:(void(^)(BOOL))completion;
 
 @end
 

@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name = "TwitterKitSOF"
-  s.version = "5.0.5"
+  s.version = "5.0.6"
   s.summary = "Increase user engagement and app growth."
   s.homepage = "https://github.com/N1k1tung/twitter-kit-ios"
   s.documentation_url = "https://github.com/N1k1tung/twitter-kit-ios/wiki"

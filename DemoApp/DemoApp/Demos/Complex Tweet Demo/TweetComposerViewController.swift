@@ -145,7 +145,9 @@ extension TweetComposerViewController: TWTRComposerViewControllerDelegate {
         }
     }
     
-    func composerCanControlOutside(_ controller: TWTRComposerViewController, completion: @escaping (Bool) -> Void) -> Bool {
+    func composerCanControlOutside(_ controller: TWTRComposerViewController,
+                                   tweetText: String?,
+                                   completion: @escaping (Bool) -> Void) -> Bool {
         return false
     }
 
