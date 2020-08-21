@@ -224,11 +224,11 @@ static id<TWTRSessionStore_Private> TWTRSharedSessionStore = nil;
     const long long kChunkMaxSize = 5 * 1024 * 1024 - 1;
 
     while((len + kChunkMaxSize) < [videoData length]) {
-        [dataChunks addObject: [videoData subdataWithRange: NSMakeRange(len, kChunkMaxSize)]];
+        [dataChunks addObject: [videoData subdataWithRange: NSMakeRange((NSUInteger)len, kChunkMaxSize)]];
         len += kChunkMaxSize;
     }
 
-    [dataChunks addObject: [videoData subdataWithRange: NSMakeRange(len, videoData.length - len)]];
+    [dataChunks addObject: [videoData subdataWithRange: NSMakeRange((NSUInteger)len, videoData.length - (NSUInteger)len)]];
     
     NSMutableArray *chunks = [NSMutableArray array];
     
